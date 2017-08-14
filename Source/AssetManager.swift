@@ -38,7 +38,7 @@ open class AssetManager {
     let imageManager = PHImageManager.default()
     let requestOptions = PHImageRequestOptions()
     requestOptions.deliveryMode = .highQualityFormat
-    requestOptions.isNetworkAccessAllowed = true
+    requestOptions.isNetworkAccessAllowed = false
 
     imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
       if let info = info, info["PHImageFileUTIKey"] == nil {
@@ -53,7 +53,8 @@ open class AssetManager {
     let imageManager = PHImageManager.default()
     let requestOptions = PHImageRequestOptions()
     requestOptions.isSynchronous = true
-
+    requestOptions.deliveryMode = .opportunistic
+    requestOptions.isNetworkAccessAllowed = false
     var images = [UIImage]()
     for asset in assets {
       imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in

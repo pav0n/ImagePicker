@@ -17,22 +17,37 @@ open class AssetManager {
 
   open static func fetch(_ completion: @escaping (_ assets: [PHAsset]) -> Void) {
     guard PHPhotoLibrary.authorizationStatus() == .authorized else { return }
-
+    
     DispatchQueue.global(qos: .background).async {
-      let fetchResult = PHAsset.fetchAssets(with: .image, options: PHFetchOptions())
-
+      let options = PHFetchOptions()
+      
+      let fetchResult = PHAsset.fetchAssets(with: .image, options: options)
+      
       if fetchResult.count > 0 {
         var assets = [PHAsset]()
         fetchResult.enumerateObjects({ object, index, stop in
+          
           assets.insert(object, at: 0)
         })
-
+        
+        let collections = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumCloudShared, options: nil)
+        var exceptList =  [PHAsset]()
+        collections.enumerateObjects({ (collection, idx, stop) in
+          let assets2 = PHAsset.fetchAssets(in: collection, options: options)
+          assets2.enumerateObjects({ (obj, idx, stop) in
+            exceptList.append(obj)
+          })
+        })
+        assets = assets.filter({ (item) -> Bool in
+          !exceptList.contains(item)
+        })
         DispatchQueue.main.async {
           completion(assets)
         }
       }
     }
   }
+
 
   open static func resolveAsset(_ asset: PHAsset, size: CGSize = CGSize(width: 720, height: 1280), completion: @escaping (_ image: UIImage?) -> Void) {
     let imageManager = PHImageManager.default()
